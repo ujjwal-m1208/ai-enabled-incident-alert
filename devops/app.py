@@ -149,27 +149,6 @@ class IncidentAlertStack(Stack):
             )
         )
 
-        sms_api = apigateway.RestApi(
-        self,
-        "SMSAPIGateway",
-        description="SMS API Service",
-        rest_api_name="twilio-sms",
-        default_cors_preflight_options=cors_options,
-        deploy=True,
-        deploy_options=rest_api_stage_options,
-        endpoint_types=[apigateway.EndpointType.REGIONAL],
-        ) 
-
-        sms_lambda_integration = apigateway.LambdaIntegration(
-        fn,
-        timeout=Duration.seconds(29),
-        proxy=True
-        )
-
-        # Add the post-sms resource to the SMS API
-        sms_resource = sms_api.root.add_resource("post-sms")
-        sms_resource.add_method("POST", sms_lambda_integration)
-
 
 app = App()
 IncidentAlertStack(app, STACK_NAME)
