@@ -80,9 +80,11 @@ def lambda_handler(event, context):
         
             # Process model response
             response_body = json.loads(response['body'].read())
-            model_text = response_body['content'][0]['text'].strip()
+
+# Extract text from 'generation' key
+            model_text = response_body.get("generation", "").strip()
+
             print("Model raw response:", model_text)
-    
             # Parse JSON response
             try:
                 output = json.loads(model_text)
