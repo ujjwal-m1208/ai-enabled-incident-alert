@@ -100,6 +100,7 @@ jobs:
           STACK_NAME: ${{ vars.STACK_NAME }}
           API_NAME: ${{ vars.API_NAME }}
           TABLE_NAME: ${{ vars.TABLE_NAME }}
+          BEDROCK_MODEL: ${{ vars.BEDROCK_MODEL }}
    
                  
 

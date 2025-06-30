@@ -21,6 +21,7 @@ API_KEY = getenv('API_KEY')
 API_NAME = getenv('API_NAME')
 STACK_NAME = getenv('STACK_NAME')
 TABLE_NAME = getenv('TABLE_NAME')
+BEDROCK_MODEL = getenv('BEDROCK_MODEL')
 lambda_code_image_repository =  f"arn:aws:ecr:{AWS_REGION}:{AWS_TARGET_ACCOUNT}:repository/{ECR_REPOSITORY}"
 
 
@@ -104,7 +105,8 @@ class IncidentAlertStack(Stack):
             environment={
                 "TABLE_NAME": table.table_name,
                 "API_KEY": API_KEY,
-                "API_NAME": API_NAME
+                "API_NAME": API_NAME,
+                "BEDROCK_MODEL": BEDROCK_MODEL,
             },
             timeout=Duration.seconds(900)
         )
@@ -130,7 +132,7 @@ class IncidentAlertStack(Stack):
             tracing_enabled=True,
         )
 
-        rest_api_gateway = apigateway.LambdaRestApi(
+        _ = apigateway.LambdaRestApi(
             self,
             "RestAPIGateway",
             handler=fn,

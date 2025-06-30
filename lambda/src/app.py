@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from src.endpoints import router as api_router
 
-BEDROCK_MODEL = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'
+BEDROCK_MODEL = os.environ.get('BEDROCK_MODEL')
 TABLE_NAME = os.environ.get('TABLE_NAME')
 API_NAME = os.environ.get('API_NAME')
 
