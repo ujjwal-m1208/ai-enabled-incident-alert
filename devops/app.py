@@ -18,6 +18,7 @@ LAMBDA_CODE_IMAGE_TAG = getenv('LAMBDA_CODE_IMAGE_TAG')
 ECR_REPOSITORY = getenv('ECR_REPOSITORY')
 AWS_REGION = getenv('AWS_REGION')
 API_KEY = getenv('API_KEY')
+API_NAME = getenv('API_NAME')
 STACK_NAME = getenv('STACK_NAME')
 TABLE_NAME = getenv('TABLE_NAME')
 lambda_code_image_repository =  f"arn:aws:ecr:{AWS_REGION}:{AWS_TARGET_ACCOUNT}:repository/{ECR_REPOSITORY}"
