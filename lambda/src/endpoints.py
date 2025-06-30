@@ -15,21 +15,6 @@ from src.models import Incident, UpdateStatus
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# API Security configuration
-API_KEY = os.environ.get("API_KEY")  # Default for development only
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
-
-def get_api_key(api_key_header: str = Depends(api_key_header)):
-    if not api_key_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing API Key"
-        )
-    if api_key_header != API_KEY:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API Key"
-        )
-    return api_key_header
-
 # Router configuration
 router = APIRouter(
     prefix="/v1",
@@ -37,8 +22,7 @@ router = APIRouter(
     responses={
         status.HTTP_401_UNAUTHORIZED: {"description": "Authentication failed"},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Server Error"}
-    },
-    dependencies=[Depends(get_api_key)]
+    }
 )
 
 # Database setup
