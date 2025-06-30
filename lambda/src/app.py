@@ -69,13 +69,12 @@ def lambda_handler(event, context):
             
             # Invoke Bedrock model
             response = bedrock.invoke_model(
-                modelId=BEDROCK_MODEL,
+                modelId=BEDROCK_MODEL,  # e.g., "meta.llama2-13b-chat-v1" or "meta.llama3-8b-instruct-v1:0"
                 body=json.dumps({
-                    "anthropic_version": "bedrock-2023-05-31",
-                    "max_tokens": 1000,
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ]
+                    "prompt": prompt,
+                    "max_gen_len": 1000,
+                    "temperature": 0.7,
+                    "top_p": 0.9
                 })
             )
         
