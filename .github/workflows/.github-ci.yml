@@ -1,0 +1,106 @@
+name: Release & Deployment
+
+on:
+  push:
+    branches:
+      - test
+    paths-ignore:
+      - README.md
+      - docs/*
+  workflow_dispatch:
+
+env:
+  ENVIRONMENT: ${{ github.ref_name }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY : ${{ vars.ECR_REPOSITORY }}
+
+# Permission can be added at job level or workflow level    
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout  
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 
+      
+      - name: Set Build ID
+        run: echo "BUILD_ID=${GITHUB_RUN_ID}" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+  
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+  
+      - name: Display Node.js version
+        run: npm version
+  
+      - name: Install AWS CDK runtime
+        run: |
+          python -m pip install --upgrade pip
+          npm install -g aws-cdk
+  
+      - name: CDK runtime version
+        run: |
+          cdk --version
+  
+      - name: Install AWS CDK Dependencies
+        run: |
+          pip install aws-cdk-lib
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1     
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+
+      - name: Build Docker Image
+        run: |
+          cd lambda
+          docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.BUILD_ID }} .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.BUILD_ID }} ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.BUILD_ID }}
+
+      - name: Create ECR Repository if Not Exists
+        run: |
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }} || \
+          aws ecr create-repository --repository-name ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }}
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.BUILD_ID }}
+          
+      - name: Deploy CDK stack 
+        working-directory: ./devops/
+        run: |
+          pip install boto3 
+          cdk deploy --require-approval never
+        env:
+          AWS_TARGET_ACCOUNT: ${{ env.ACCOUNT_ID }}
+          LAMBDA_CODE_IMAGE_TAG: ${{ env.BUILD_ID }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          API_KEY: ${{ secrets.API_KEY }}
+          STACK_NAME: ${{ vars.STACK_NAME }}
+          API_NAME: ${{ vars.API_NAME }}
+          TABLE_NAME: ${{ vars.TABLE_NAME }}
+   
+                 
+
+   

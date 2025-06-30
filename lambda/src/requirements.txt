@@ -1,0 +1,7 @@
+fastapi==0.115.8
+pydantic==1.10.13
+mangum==0.17.0
+uvicorn==0.25.0
+boto3==1.36.25
+botocore>=1.33.25
+requests>=2.31.0
